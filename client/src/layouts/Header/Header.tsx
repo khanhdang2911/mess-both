@@ -1,5 +1,6 @@
 import { Button, Avatar, Dropdown } from 'flowbite-react'
 import { FaFacebookMessenger, FaUserCircle, FaSignOutAlt } from 'react-icons/fa'
+import { Link } from 'react-router-dom'
 
 export default function Header() {
   // This state would normally be managed by your authentication system
@@ -8,10 +9,10 @@ export default function Header() {
   return (
     <header className='bg-white shadow-sm'>
       <div className='mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8'>
-        <a className='flex items-center text-blue-500' href='#'>
+        <Link className='flex items-center text-blue-500' to='/'>
           <FaFacebookMessenger className='h-8 w-8 mr-2' />
           <span className='text-xl font-semibold'>Messenger</span>
-        </a>
+        </Link>
 
         <div className='flex items-center gap-4'>
           {true ? (
