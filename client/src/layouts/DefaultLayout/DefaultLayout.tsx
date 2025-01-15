@@ -5,7 +5,7 @@ const DefaultLayout = ({ children }: { children: ReactNode }) => {
   return (
     <div className='w-full'>
       <Header />
-
+      <div className='bg-gray-200 h-0.5 w-full'></div>
       {children}
     </div>
   )
