@@ -4,23 +4,37 @@ import React, { useState } from 'react'
 import { Card, TextInput, Label, Button, Alert, Radio } from 'flowbite-react'
 import { HiMail, HiLockClosed, HiUser } from 'react-icons/hi'
 import { FaGoogle, FaFacebook } from 'react-icons/fa'
-
+import { register } from '../../api/auth.api'
+import { Link, useNavigate } from 'react-router-dom'
 export default function Register() {
-  const [firstName, setFirstName] = useState('')
-  const [lastName, setLastName] = useState('')
+  const [firstname, setFirstname] = useState('')
+  const [lastname, setLastname] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [gender, setGender] = useState('')
   const [error, setError] = useState('')
+  const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!firstName || !lastName || !email || !password || !gender) {
+    if (!firstname || !lastname || !email || !password || !gender) {
       setError('Please fill in all fields')
       return
     }
     // Implement registration logic here
-    console.log('Registration attempt', { firstName, lastName, email, password, gender })
+    try {
+      const response = await register({ firstname, lastname, email, password, gender })
+      if (response.status === 'success') {
+        setFirstname('')
+        setLastname('')
+        setEmail('')
+        setPassword('')
+        setGender('')
+        navigate('/login')
+      }
+    } catch (error) {
+      setError((error as any)?.response?.data.message)
+    }
   }
 
   const handleGoogleRegister = () => {
@@ -40,28 +54,28 @@ export default function Register() {
         <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
           <div className='grid grid-cols-2 gap-4'>
             <div>
-              <Label htmlFor='firstName' value='First Name' className='text-sm font-medium text-gray-700' />
+              <Label htmlFor='firstname' value='First Name' className='text-sm font-medium text-gray-700' />
               <TextInput
-                id='firstName'
+                id='firstname'
                 type='text'
                 icon={HiUser}
                 placeholder='John'
                 required
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
+                value={firstname}
+                onChange={(e) => setFirstname(e.target.value)}
                 className='mt-1'
               />
             </div>
             <div>
-              <Label htmlFor='lastName' value='Last Name' className='text-sm font-medium text-gray-700' />
+              <Label htmlFor='lastname' value='Last Name' className='text-sm font-medium text-gray-700' />
               <TextInput
-                id='lastName'
+                id='lastname'
                 type='text'
                 icon={HiUser}
                 placeholder='Doe'
                 required
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
+                value={lastname}
+                onChange={(e) => setLastname(e.target.value)}
                 className='mt-1'
               />
             </div>
@@ -97,27 +111,27 @@ export default function Register() {
             <div className='flex gap-4'>
               <div className='flex items-center'>
                 <Radio
-                  id='male'
+                  id='Male'
                   name='gender'
-                  value='male'
-                  onChange={() => setGender('male')}
-                  checked={gender === 'male'}
+                  value='Male'
+                  onChange={() => setGender('Male')}
+                  checked={gender === 'Male'}
                   className='text-blue-500 border-blue-500 focus:ring-blue-500'
                 />
-                <Label htmlFor='male' className='ml-2'>
+                <Label htmlFor='Male' className='ml-2'>
                   Male
                 </Label>
               </div>
               <div className='flex items-center'>
                 <Radio
-                  id='female'
+                  id='Female'
                   name='gender'
-                  value='female'
-                  onChange={() => setGender('female')}
-                  checked={gender === 'female'}
+                  value='Female'
+                  onChange={() => setGender('Female')}
+                  checked={gender === 'Female'}
                   className='text-blue-500 border-blue-500 focus:ring-blue-500'
                 />
-                <Label htmlFor='female' className='ml-2'>
+                <Label htmlFor='Female' className='ml-2'>
                   Female
                 </Label>
               </div>
@@ -153,10 +167,10 @@ export default function Register() {
           </div>
         </div>
         <p className='mt-4 text-center text-sm text-gray-600'>
-          Already have an account?{' '}
-          <a href='#' className='font-medium text-blue-600 hover:underline'>
+          Already have an account?
+          <Link to='/login' className='font-medium text-blue-600 hover:underline'>
             Sign in
-          </a>
+          </Link>
         </p>
       </Card>
     </div>

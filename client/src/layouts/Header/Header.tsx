@@ -1,11 +1,24 @@
 import { Button, Avatar, Dropdown } from 'flowbite-react'
 import { FaFacebookMessenger, FaUserCircle, FaSignOutAlt } from 'react-icons/fa'
 import { Link } from 'react-router-dom'
-
+import { useDispatch, useSelector } from 'react-redux'
+import { getAuthSelector } from '../../redux/selectors'
+import { logout } from '../../api/auth.api'
+import authSlice from '../../redux/authSlice'
+import { useNavigate } from 'react-router-dom'
 export default function Header() {
-  // This state would normally be managed by your authentication system
-  const isLoggedIn = false // Set this to true to see the avatar and dropdown
-
+  const auth: any = useSelector(getAuthSelector)
+  const navigate = useNavigate()
+  const dispatch = useDispatch()
+  const handleLogout = async () => {
+    try {
+      await logout()
+      dispatch(authSlice.actions.logout())
+      navigate('/login')
+    } catch (error) {
+      console.log('error', error)
+    }
+  }
   return (
     <header className='bg-white shadow-sm'>
       <div className='mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8'>
@@ -15,7 +28,7 @@ export default function Header() {
         </Link>
 
         <div className='flex items-center gap-4'>
-          {true ? (
+          {auth?.isAuthenticated ? (
             <Dropdown
               arrowIcon={false}
               inline
@@ -28,21 +41,25 @@ export default function Header() {
               }
             >
               <Dropdown.Header>
-                <span className='block text-sm'>Bonnie Green</span>
-                <span className='block truncate text-sm font-medium'>name@flowbite.com</span>
+                <span className='block text-sm'>
+                  {auth.user.firstname} {auth.user.lastname}
+                </span>
+                <span className='block truncate text-sm font-medium'>{auth.user.email}</span>
               </Dropdown.Header>
               <Dropdown.Item icon={FaUserCircle}>Profile</Dropdown.Item>
               <Dropdown.Divider />
-              <Dropdown.Item icon={FaSignOutAlt}>Sign out</Dropdown.Item>
+              <Dropdown.Item icon={FaSignOutAlt} onClick={handleLogout}>
+                Sign out
+              </Dropdown.Item>
             </Dropdown>
           ) : (
-            <div className='sm:flex sm:gap-4'>
-              <Button color='blue' href='#'>
-                Login
-              </Button>
-              <Button color='light' className='hidden sm:block' href='#'>
-                Register
-              </Button>
+            <div className='flex gap-4'>
+              <Link to='/login'>
+                <Button color='blue'>Login</Button>
+              </Link>
+              <Link to='/register' className='block'>
+                <Button color='light'>Register</Button>
+              </Link>
             </div>
           )}
         </div>
