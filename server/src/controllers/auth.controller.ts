@@ -1,7 +1,7 @@
 import { Request, Response } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import SuccessResponse from '~/core/success.response'
-import { generateRefreshTokenService, loginService, registerService } from '~/services/auth.service'
+import { generateRefreshTokenService, loginService, logoutService, registerService } from '~/services/auth.service'
 const Login = async (req: Request, res: Response) => {
   const data = req.body
   const user = await loginService(data.email, data.password)
@@ -19,10 +19,18 @@ const Register = async (req: Request, res: Response) => {
   new SuccessResponse(StatusCodes.CREATED, 'Register successfully', newUser!).send(res)
 }
 
+const Logout = async (req: Request, res: Response) => {
+  const userId = req.userId
+  await logoutService(userId, req)
+  res.clearCookie('refreshToken')
+  new SuccessResponse(StatusCodes.OK, 'Logout successfully').send(res)
+}
+
 const generateRefreshToken = async (req: Request, res: Response) => {
   const refreshToken = req.cookies.refreshToken
   const userId = req.userId
   const newAccessToken = await generateRefreshTokenService(refreshToken!, userId)
   new SuccessResponse(StatusCodes.OK, 'Generate refresh token successfully', newAccessToken).send(res)
 }
-export { Login, Register, generateRefreshToken }
+
+export { Login, Register, generateRefreshToken, Logout }

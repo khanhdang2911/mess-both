@@ -1,37 +1,59 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom'
-import Home from './pages/Home/Home'
-import Login from './pages/Login/Login'
-import DefaultLayout from './layouts/DefaultLayout/DefaultLayout'
-import Register from './pages/Register/Register'
+import { privateRoutes, publicRoutes } from './routes/routes'
+import React from 'react'
+import PrivateRoute from './components/PrivateRoute/PrivateRoute'
 function App() {
   return (
     <>
       <Router>
         <Routes>
-          <Route
-            path='/'
-            element={
-              <DefaultLayout>
-                <Home />
-              </DefaultLayout>
+          {publicRoutes.map((route, index) => {
+            let Layout = route.layout
+            let Component = route.component
+            if (Component === null) {
+              Component = React.Fragment
             }
-          />
-          <Route
-            path='/login'
-            element={
-              <DefaultLayout>
-                <Login />
-              </DefaultLayout>
+            if (Layout === null) {
+              Layout = React.Fragment
             }
-          />
-          <Route
-            path='/register'
-            element={
-              <DefaultLayout>
-                <Register />
-              </DefaultLayout>
-            }
-          />
+            return (
+              <Route
+                key={index}
+                path={route.path}
+                element={
+                  <Layout>
+                    <Component />
+                  </Layout>
+                }
+              />
+            )
+          })}
+          {
+            // Add private routes
+            privateRoutes.map((route, index) => {
+              let Layout = route.layout
+              let Component = route.component
+              if (Component === null) {
+                Component = React.Fragment
+              }
+              if (!Layout) {
+                Layout = React.Fragment
+              }
+              return (
+                <Route
+                  key={index}
+                  path={route.path}
+                  element={
+                    <PrivateRoute>
+                      <Layout>
+                        <Component />
+                      </Layout>
+                    </PrivateRoute>
+                  }
+                />
+              )
+            })
+          }
         </Routes>
       </Router>
     </>

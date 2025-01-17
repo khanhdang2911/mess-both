@@ -36,7 +36,7 @@ const UserSchema = new Schema<IUser>(
     },
     refreshToken: {
       type: String,
-      required: true
+      required: false
     },
     gender: {
       type: String,
@@ -46,7 +46,8 @@ const UserSchema = new Schema<IUser>(
     role: {
       type: String,
       required: true,
-      enum: [...ROLES]
+      enum: [...ROLES],
+      default: 'user'
     }
   },
   {

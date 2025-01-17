@@ -1,7 +1,9 @@
+import { Request } from 'express'
 import { ReasonPhrases, StatusCodes } from 'http-status-codes'
 import ErrorResponse from '~/core/error.response'
 import { IUser, User } from '~/models/user.model'
 import { registerValidation } from '~/validations/auth.validation'
+
 import dotenv from 'dotenv'
 import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
@@ -69,6 +71,13 @@ const registerService = async (data: IUser) => {
   })
   return newUser
 }
+const logoutService = async (userId: string, req: Request) => {
+  const user = await User.findById(userId)
+  if (!user) throw new ErrorResponse(StatusCodes.BAD_REQUEST, 'User not found')
+  if (user.refreshToken != req.cookies.refreshToken)
+    throw new ErrorResponse(StatusCodes.BAD_REQUEST, 'Refresh token is not valid')
+  return true
+}
 
 const generateRefreshTokenService = async (refreshToken: string, userId: string) => {
   const user = await User.findById(userId)
@@ -81,4 +90,12 @@ const generateRefreshTokenService = async (refreshToken: string, userId: string)
     accessToken: newAccessToken
   }
 }
-export { loginService, registerService, validateToken, validateTokenV2, generateToken, generateRefreshTokenService }
+export {
+  loginService,
+  registerService,
+  validateToken,
+  validateTokenV2,
+  generateToken,
+  generateRefreshTokenService,
+  logoutService
+}

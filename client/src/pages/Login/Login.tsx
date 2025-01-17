@@ -4,21 +4,34 @@ import React, { useState } from 'react'
 import { Card, TextInput, Label, Button, Alert, Checkbox } from 'flowbite-react'
 import { HiMail, HiLockClosed } from 'react-icons/hi'
 import { FaGoogle, FaFacebook } from 'react-icons/fa'
+import { useDispatch } from 'react-redux'
+import authSlice from '../../redux/authSlice'
+import { login } from '../../api/auth.api'
+import { Link, useNavigate } from 'react-router-dom'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
   const [error, setError] = useState('')
-
-  const handleSubmit = (e: React.FormEvent) => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!email || !password) {
       setError('Please enter both email and password')
       return
     }
-    // Implement login logic here
-    console.log('Login attempt', { email, password, rememberMe })
+    try {
+      const response = await login({ email, password })
+      if (response.status == 'success') {
+        dispatch(authSlice.actions.setUser(response.data))
+      }
+      //navigate('/')
+      navigate('/')
+    } catch (error) {
+      setError((error as any)?.response?.data.message)
+    }
   }
 
   const handleGoogleLogin = () => {
@@ -91,20 +104,20 @@ export default function Login() {
           </div>
           <div className='mt-6 grid grid-cols-2 gap-3'>
             <Button color='light' onClick={handleGoogleLogin} className='w-full flex items-center justify-center'>
-              <FaGoogle className='mr-2' />
+              <FaGoogle className='mr-2 mt-1' />
               Google
             </Button>
             <Button color='light' onClick={handleFacebookLogin} className='w-full flex items-center justify-center'>
-              <FaFacebook className='mr-2' />
+              <FaFacebook className='mr-2 mt-1' />
               Facebook
             </Button>
           </div>
         </div>
         <p className='mt-4 text-center text-sm text-gray-600'>
           Don't have an account?
-          <a href='#' className='font-medium text-blue-600 hover:underline'>
+          <Link to='/register' className='font-medium text-blue-600 hover:underline'>
             Sign up
-          </a>
+          </Link>
         </p>
       </Card>
     </div>
