@@ -1,8 +1,12 @@
 import { Avatar, TextInput } from 'flowbite-react'
 import { HiSearch, HiPlus } from 'react-icons/hi'
 import UserInChatList from '../../../components/UserInChatList/UserInChatList'
-
-const users = [
+import { useEffect, useState } from 'react'
+import { IUserGet } from '../../../interfaces/User'
+import { getAllUsers } from '../../../api/user.api'
+import { getChatsByUser } from '../../../api/chat.api'
+import { IChatGet } from '../../../interfaces/Chat'
+const USERS = [
   {
     id: 1,
     firstname: 'Anna',
@@ -43,8 +47,34 @@ const users = [
 interface ChatListProps {
   sidebarRef: React.RefObject<HTMLDivElement>
   showSidebar: boolean
+  choosenChat: string | null
+  setChoosenChat: React.Dispatch<React.SetStateAction<string | null>>
 }
-const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar }) => {
+const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosenChat }) => {
+  const [users, setUsers] = useState<IUserGet[]>([])
+  const [chats, setChats] = useState<IChatGet[]>([])
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        const response = await getAllUsers()
+        setUsers(response.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    fetchUsers()
+  }, [])
+  useEffect(() => {
+    const fetchChats = async () => {
+      try {
+        const response = await getChatsByUser()
+        setChats(response.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    fetchChats()
+  }, [])
   return (
     <div
       ref={sidebarRef}
@@ -71,9 +101,9 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar }) => {
             <span className='text-xs text-gray-600 mt-1'>Your Story</span>
           </div>
           {users.slice(0, 3).map((user) => (
-            <div key={user.id} className='flex flex-col items-center'>
+            <div key={user._id} className='flex flex-col items-center'>
               <div className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center'>
-                <Avatar img={user.avatar} rounded className='w-full h-full' />
+                <Avatar img={''} rounded className='w-full h-full' />
               </div>
               <span className='text-xs text-gray-600 mt-1'>
                 {user.firstname} {user.lastname}
@@ -85,8 +115,8 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar }) => {
 
       {/* Chat List */}
       <div className='overflow-y-auto h-[calc(100%-200px)] custom-scroll'>
-        {users.map((user) => (
-          <UserInChatList user={user} key={user.id} />
+        {chats.map((chat) => (
+          <UserInChatList key={chat._id} chat={chat} onClick={() => setChoosenChat(chat._id)} />
         ))}
       </div>
       {/* Footer */}

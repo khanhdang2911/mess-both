@@ -16,4 +16,11 @@ interface IUserLogin {
   email: string
   password: string
 }
-export type { IUser, IUserRegister ,IUserLogin}
+interface IUserGet {
+  _id: string
+  firstname: string
+  lastname: string
+  email: string
+  gender: string
+}
+export type { IUser, IUserRegister, IUserLogin, IUserGet }

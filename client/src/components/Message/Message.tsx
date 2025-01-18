@@ -1,17 +1,14 @@
 import { Avatar } from 'flowbite-react'
+import { useSelector } from 'react-redux'
+import { getAuthSelector } from '../../redux/selectors'
 
 interface MessageProps {
-  message: {
-    id: number
-    sender: string
-    content: string
-    timestamp: string
-    avatar?: string
-  }
+  message: any
 }
 
 const Message: React.FC<MessageProps> = ({ message }) => {
-  const isUser = message.sender === 'user'
+  const auth: any = useSelector(getAuthSelector)
+  const isUser = auth?.user && auth?.user._id === message.sender._id
 
   return (
     <div key={message.id} className={`flex items-start gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
