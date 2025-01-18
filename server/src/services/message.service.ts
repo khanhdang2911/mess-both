@@ -2,6 +2,7 @@ import { StatusCodes } from 'http-status-codes'
 import ErrorResponse from '~/core/error.response'
 import { Chat } from '~/models/chat.model'
 import { IMessage, Message } from '~/models/message.model'
+import { User } from '~/models/user.model'
 import { createMessageValidation } from '~/validations/message.validation'
 
 const createMessageService = async (data: IMessage, userId: string) => {
@@ -24,4 +25,53 @@ const createMessageService = async (data: IMessage, userId: string) => {
   return newMessage
 }
 
-export { createMessageService }
+const GetMessagesByChatService = async (userId: string, chat_id: string) => {
+  const chat = await Chat.findOne({
+    _id: chat_id,
+    members: userId
+  })
+  if (!chat) {
+    throw new ErrorResponse(StatusCodes.NOT_FOUND, 'Chat not found or you are not a member of this chat')
+  }
+  const messages = await Message.aggregate([
+    {
+      $match: {
+        chat_id: chat_id
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        let: { sender_id: { $toObjectId: '$sender_id' } },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$sender_id']
+              }
+            }
+          }
+        ],
+        as: 'sender'
+      }
+    },
+    {
+      $unwind: '$sender'
+    },
+    {
+      $project: {
+        _id: 1,
+        chat_id: 1,
+        sender_id: 1,
+        content: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        'sender._id': 1,
+        'sender.firstname': 1,
+        'sender.lastname': 1
+      }
+    }
+  ])
+  return messages
+}
+export { createMessageService, GetMessagesByChatService }

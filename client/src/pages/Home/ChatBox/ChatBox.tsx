@@ -34,12 +34,13 @@ interface ChatBoxProps {
   sidebarRef: React.RefObject<HTMLDivElement>
   showSidebar: boolean
   setShowSidebar: (show: boolean) => void
+  messages: any[]
+  setMessages: React.Dispatch<React.SetStateAction<any[]>>
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages, setMessages }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
-  const [messages, setMessages] = useState(MESSAGES)
   const onEmojiClick = (emojiObject: any) => {
     setInputMessage((prevInput) => prevInput + emojiObject.emoji)
   }
@@ -62,7 +63,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar }) => {
       {/* Messages */}
       <div className='flex-1 overflow-y-auto p-4 space-y-4 bg-white'>
         {messages.map((message, index) => (
-          <Message key={index} message={message}/>
+          <Message key={index} message={message} />
         ))}
       </div>
 

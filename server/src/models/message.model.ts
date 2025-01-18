@@ -33,7 +33,9 @@ const MessageSchema = new Schema<IMessage>(
     },
     sender_id: {
       type: String,
-      required: true
+      required: true,
+      ref: 'user'
+
     },
     status: {
       type: String,
