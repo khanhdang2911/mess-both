@@ -2,7 +2,7 @@ interface IMessageCreate {
   chat_id: string
   type: string
   content: string
-  status: string
+  status?: string
 }
 export type { IMessageCreate }
 /*

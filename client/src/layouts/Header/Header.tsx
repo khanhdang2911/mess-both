@@ -17,6 +17,8 @@ export default function Header() {
       navigate('/login')
     } catch (error) {
       console.log('error', error)
+      dispatch(authSlice.actions.logout())
+      navigate('/login')
     }
   }
   return (
@@ -29,17 +31,7 @@ export default function Header() {
 
         <div className='flex items-center gap-4'>
           {auth?.isAuthenticated ? (
-            <Dropdown
-              arrowIcon={false}
-              inline
-              label={
-                <Avatar
-                  alt='User settings'
-                  img='https://flowbite.com/docs/images/people/profile-picture-5.jpg'
-                  rounded
-                />
-              }
-            >
+            <Dropdown arrowIcon={false} inline label={<Avatar alt='User settings' img={auth.user?.avatar} rounded />}>
               <Dropdown.Header>
                 <span className='block text-sm'>
                   {auth.user.firstname} {auth.user.lastname}

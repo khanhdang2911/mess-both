@@ -6,59 +6,46 @@ import EmojiPicker from 'emoji-picker-react'
 import { useState } from 'react'
 import Message from '../../../components/Message/Message'
 import ChatHeader from './ChatHeader/ChatHeader'
-const MESSAGES = [
-  {
-    id: 1,
-    content: 'Hey! How are you?',
-    sender: 'user',
-    timestamp: '3:04 PM',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
-  },
-  {
-    id: 2,
-    content: 'Shall we go for Hiking this weekend?',
-    sender: 'user',
-    timestamp: '3:05 PM',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
-  },
-  {
-    id: 3,
-    content:
-      'Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Volutpat lacus laoreet non curabitur gravida.',
-    sender: 'other',
-    timestamp: '3:06 PM',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
-  }
-]
+import { IChatGet } from '../../../interfaces/Chat'
+import { IMessageCreate } from '../../../interfaces/Message'
+import { createMessage } from '../../../api/message.api'
+
 interface ChatBoxProps {
   sidebarRef: React.RefObject<HTMLDivElement>
   showSidebar: boolean
   setShowSidebar: (show: boolean) => void
   messages: any[]
   setMessages: React.Dispatch<React.SetStateAction<any[]>>
+  chatCurrentInfo: IChatGet
 }
 
-const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages, setMessages }) => {
+const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages, setMessages, chatCurrentInfo }) => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
   const onEmojiClick = (emojiObject: any) => {
     setInputMessage((prevInput) => prevInput + emojiObject.emoji)
   }
-  const sendMessage = () => {
-    const newMessage = {
-      id: messages.length + 1,
+  const sendMessage = async () => {
+    const newMessage: IMessageCreate = {
+      chat_id: chatCurrentInfo._id,
       content: inputMessage,
-      sender: 'user',
-      timestamp: '3:07 PM',
-      avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg'
+      type: 'text'
     }
-    setMessages((prev) => [...prev, newMessage])
+    try {
+      const response = await createMessage(newMessage)
+      if (response.status === 'success') {
+        setMessages((prev) => [...prev, response.data])
+      }
+    } catch (error) {
+      console.log(error)
+    }
+
     setInputMessage('')
   }
   return (
     <div className='flex-1 flex flex-col w-full md:w-auto'>
       {/* Chat Header */}
-      <ChatHeader setShowSidebar={setShowSidebar} showSidebar={showSidebar} />
+      <ChatHeader chatCurrentInfo={chatCurrentInfo} setShowSidebar={setShowSidebar} showSidebar={showSidebar} />
 
       {/* Messages */}
       <div className='flex-1 overflow-y-auto p-4 space-y-4 bg-white'>
@@ -103,8 +90,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages
               </div>
             )}
           </div>
-          <Button color='light' size='sm' pill className='flex'>
-            <IoSend onClick={sendMessage} className='w-4 h-4' />
+          <Button onClick={sendMessage} color='light' size='sm' pill className='flex'>
+            <IoSend className='w-4 h-4' />
           </Button>
           <Button color='light' size='sm' pill>
             <HiThumbUp className='w-4 h-4' />
