@@ -8,6 +8,7 @@ interface IChat {
   members: string[]
   chat_name?: string
   chat_type?: string
+  chat_avatar?: string
   last_message?: string
   last_message_at?: Date
   last_message_by?: string
@@ -28,6 +29,10 @@ const ChatSchema = new Schema<IChat>(
       required: true,
       enum: Object.values(CHAT_TYPES),
       default: 'direct'
+    },
+    chat_avatar: {
+      type: String,
+      required: false
     },
     last_message: {
       type: String,
