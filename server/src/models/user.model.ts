@@ -43,6 +43,10 @@ const UserSchema = new Schema<IUser>(
       required: true,
       enum: ['Male', 'Female']
     },
+    avatar: {
+      type: String,
+      required: false
+    },
     role: {
       type: String,
       required: true,

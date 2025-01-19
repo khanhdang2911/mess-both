@@ -4,10 +4,12 @@ import { useState, useEffect, useRef } from 'react'
 import ChatList from './ChatList/ChatList'
 import ChatBox from './ChatBox/ChatBox'
 import { getMessagesByChat } from '../../api/message.api'
+import { getChatById } from '../../api/chat.api'
 
 export default function Home() {
   const [showSidebar, setShowSidebar] = useState(false)
   const [choosenChat, setChoosenChat] = useState<string | null>(null)
+  const [chatCurrentInfo, setChatCurrentInfo] = useState<any>(null)
   const [messages, setMessages] = useState<any[]>([])
   const sidebarRef = useRef<HTMLDivElement>(null)
 
@@ -28,7 +30,6 @@ export default function Home() {
       try {
         const response = await getMessagesByChat(choosenChat!)
         setMessages(response.data)
-        console.log(response.data)
       } catch (error) {
         console.log(error)
       }
@@ -37,6 +38,19 @@ export default function Home() {
       fetchMessages()
     }
   }, [choosenChat])
+  useEffect(() => {
+    const fetchChatInfo = async () => {
+      try {
+        const response = await getChatById(choosenChat!)
+        setChatCurrentInfo(response.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    if (choosenChat) {
+      fetchChatInfo()
+    }
+  },[choosenChat])
   return (
     <div className='flex h-screen bg-white'>
       {/* Left Sidebar - User Chat List */}
@@ -53,6 +67,7 @@ export default function Home() {
         setShowSidebar={setShowSidebar}
         showSidebar={showSidebar}
         sidebarRef={sidebarRef}
+        chatCurrentInfo={chatCurrentInfo}
       />
     </div>
   )

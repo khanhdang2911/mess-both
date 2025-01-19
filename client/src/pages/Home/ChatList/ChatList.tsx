@@ -6,44 +6,7 @@ import { IUserGet } from '../../../interfaces/User'
 import { getAllUsers } from '../../../api/user.api'
 import { getChatsByUser } from '../../../api/chat.api'
 import { IChatGet } from '../../../interfaces/Chat'
-const USERS = [
-  {
-    id: 1,
-    firstname: 'Anna',
-    lastname: 'Smith',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg',
-    isOnline: true,
-    lastMessage: 'See you tomorrow!',
-    time: '2m'
-  },
-  {
-    id: 2,
-    firstname: 'Jeff',
-    lastname: 'Bezos',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg',
-    isOnline: true,
-    lastMessage: 'Great idea!',
-    time: '1h'
-  },
-  {
-    id: 3,
-    firstname: 'Tony Stark',
-    lastname: 'Iron',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg',
-    isOnline: true,
-    lastMessage: 'Hey, Are you there?',
-    time: '10min'
-  },
-  {
-    id: 4,
-    firstname: 'Scarlett',
-    lastname: 'Johansson',
-    avatar: 'https://flowbite.com/docs/images/people/profile-picture-5.jpg',
-    isOnline: false,
-    lastMessage: 'You sent a photo.',
-    time: '1h'
-  }
-]
+
 interface ChatListProps {
   sidebarRef: React.RefObject<HTMLDivElement>
   showSidebar: boolean
@@ -69,6 +32,7 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
       try {
         const response = await getChatsByUser()
         setChats(response.data)
+        setChoosenChat(response.data[0]._id)
       } catch (error) {
         console.log(error)
       }
@@ -103,7 +67,7 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
           {users.slice(0, 3).map((user) => (
             <div key={user._id} className='flex flex-col items-center'>
               <div className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center'>
-                <Avatar img={''} rounded className='w-full h-full' />
+                <Avatar img={user.avatar} rounded className='w-full h-full' />
               </div>
               <span className='text-xs text-gray-600 mt-1'>
                 {user.firstname} {user.lastname}

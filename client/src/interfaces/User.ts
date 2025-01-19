@@ -2,6 +2,7 @@ interface IUser {
   id: string
   firstname: string
   lastname: string
+  avatar?: string
   email: string
   accessToken: string
 }
@@ -20,6 +21,7 @@ interface IUserGet {
   _id: string
   firstname: string
   lastname: string
+  avatar?: string
   email: string
   gender: string
 }

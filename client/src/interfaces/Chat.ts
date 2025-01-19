@@ -6,6 +6,7 @@ interface IChatGet {
   _id: string
   members: string[]
   chat_type: string
+  chat_avatar?: string
   chat_name?: string
   createdAt?: string
   updatedAt?: string

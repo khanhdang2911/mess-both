@@ -12,7 +12,7 @@ const createMessageValidation = async (data: IMessage) => {
     // sender_id: Joi.string().required(),
     status: Joi.string()
       .valid(...Object.values(MESSAGE_STATUS))
-      .required(),
+      .default(MESSAGE_STATUS.SENT),
     is_deleted: Joi.boolean().optional(),
     is_edited: Joi.boolean().optional()
   })
