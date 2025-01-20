@@ -1,21 +1,27 @@
 import { Avatar, TextInput } from 'flowbite-react'
 import { HiSearch, HiPlus } from 'react-icons/hi'
 import UserInChatList from '../../../components/UserInChatList/UserInChatList'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import { IUserGet } from '../../../interfaces/User'
 import { getAllUsers } from '../../../api/user.api'
-import { getChatsByUser } from '../../../api/chat.api'
-import { IChatGet } from '../../../interfaces/Chat'
+import { createChat, getChatsByUser } from '../../../api/chat.api'
+import { IChatCreate, IChatGet } from '../../../interfaces/Chat'
+import { useSelector } from 'react-redux'
+import { getAuthSelector } from '../../../redux/selectors'
+import Footer from '../../../layouts/Footer/Footer'
+import { HomeContext } from '../../../context/HomeContext/HomeContext'
 
-interface ChatListProps {
-  sidebarRef: React.RefObject<HTMLDivElement>
-  showSidebar: boolean
-  choosenChat: string | null
-  setChoosenChat: React.Dispatch<React.SetStateAction<string | null>>
-}
-const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosenChat }) => {
+interface ChatListProps {}
+const ChatList: React.FC<ChatListProps> = ({}) => {
   const [users, setUsers] = useState<IUserGet[]>([])
   const [chats, setChats] = useState<IChatGet[]>([])
+  const [userIdCreateChat, setUserIdCreateChat] = useState<string | null>(null)
+  const auth: any = useSelector(getAuthSelector)
+  const homeContext = useContext(HomeContext)
+  if (!homeContext) {
+    return null
+  }
+  const { showSidebar, setChoosenChat, sidebarRef } = homeContext
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -27,6 +33,7 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
     }
     fetchUsers()
   }, [])
+
   useEffect(() => {
     const fetchChats = async () => {
       try {
@@ -39,6 +46,24 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
     }
     fetchChats()
   }, [])
+
+  useEffect(() => {
+    const handleCreateChat = async () => {
+      try {
+        const chatCreate: IChatCreate = {
+          members: [userIdCreateChat, auth.user?._id],
+          chat_type: 'direct'
+        }
+        const response = await createChat(chatCreate)
+        setChats([...chats, response.data])
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    if (userIdCreateChat) {
+      handleCreateChat()
+    }
+  }, [userIdCreateChat])
   return (
     <div
       ref={sidebarRef}
@@ -65,7 +90,7 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
             <span className='text-xs text-gray-600 mt-1'>Your Story</span>
           </div>
           {users.slice(0, 3).map((user) => (
-            <div key={user._id} className='flex flex-col items-center'>
+            <div onClick={() => setUserIdCreateChat(user._id)} key={user._id} className='flex flex-col items-center'>
               <div className='w-16 h-16 rounded-full border-2 border-blue-500 flex items-center justify-center'>
                 <Avatar img={user.avatar} rounded className='w-full h-full' />
               </div>
@@ -79,19 +104,11 @@ const ChatList: React.FC<ChatListProps> = ({ sidebarRef, showSidebar, setChoosen
 
       {/* Chat List */}
       <div className='overflow-y-auto h-[calc(100%-200px)] custom-scroll'>
-        {chats.map((chat) => (
-          <UserInChatList key={chat._id} chat={chat} onClick={() => setChoosenChat(chat._id)} />
-        ))}
+        {chats &&
+          chats.map((chat) => <UserInChatList key={chat._id} chat={chat} onClick={() => setChoosenChat(chat._id)} />)}
       </div>
       {/* Footer */}
-      <div className='absolute h-[75px] bottom-0 w-full p-4 bg-white border-t border-gray-200'>
-        <div>
-          <p className='text-sm text-gray-500'>2024 All rights reserved.</p>
-          <a href='https://facebook.com/whitedxk' target='_blank' className='text-sm text-blue-500'>
-            Dang Xuan Khanh
-          </a>
-        </div>
-      </div>
+      <Footer />
     </div>
   )
 }

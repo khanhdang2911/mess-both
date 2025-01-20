@@ -4,50 +4,49 @@ import ErrorResponse from '~/core/error.response'
 import { Chat, IChat } from '~/models/chat.model'
 import { User } from '~/models/user.model'
 import { createChatValidation } from '~/validations/chat.validation'
-
+const getChatNameAndChatAvatar = async (chat: IChat, userId: string) => {
+  let chatName = ''
+  let chatAvatar = ''
+  if (chat.chat_type === CHAT_TYPES.GROUP) {
+    const chatMembers = await User.find({
+      _id: {
+        $in: chat.members
+      }
+    })
+    chatName = chatMembers.map((member) => member.firstname).join(', ')
+    chatAvatar = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSx-8KCTnNpTQXlTfDb7z2Ka8hJfREAb2fqww&s'
+  } else {
+    const ortherMemberId = chat.members.find((member) => member !== userId)
+    const ortherMember = await User.findById(ortherMemberId)
+    if (!ortherMember) {
+      throw new ErrorResponse(StatusCodes.NOT_FOUND, 'User not found in chat')
+    }
+    chatName = ortherMember.firstname + ' ' + ortherMember.lastname
+    chatAvatar = ortherMember.avatar
+  }
+  return { chatName, chatAvatar }
+}
 const createChatService = async (data: IChat, userId: string) => {
   const { error } = await createChatValidation(data)
   if (error) {
     throw new ErrorResponse(StatusCodes.BAD_REQUEST, error.message)
   }
+  if (!data.members.includes(userId)) {
+    throw new ErrorResponse(StatusCodes.BAD_REQUEST, 'You must be a member of the chat')
+  }
+
   const checkMembersIsChatCreated = await Chat.findOne({
     members: {
       $all: data.members
     }
   })
   if (checkMembersIsChatCreated) {
-    return null
+    throw new ErrorResponse(StatusCodes.BAD_REQUEST, 'Chat already exists or you can not create chat with yourself')
   }
   const chat = await Chat.create(data)
-  if (!chat.chat_name) {
-    if (chat.chat_type === CHAT_TYPES.GROUP) {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chat.members
-        }
-      })
-      chat.chat_name = chatMembers.map((member) => member.firstname).join(', ')
-    } else {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chat.members.filter((member) => member !== userId)
-        }
-      })
-      chat.chat_name = chatMembers[0].firstname + ' ' + chatMembers[0].lastname
-    }
-  }
-  if (!chat.chat_avatar) {
-    if (chat.chat_type === CHAT_TYPES.GROUP) {
-      chat.chat_avatar = 'https://flowbite.com/docs/images/people/50/guy-6.jpg'
-    } else {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chat.members.filter((member) => member !== userId)
-        }
-      })
-      chat.chat_avatar = chatMembers[0].avatar
-    }
-  }
+  const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
+  chat.chat_name = chat.chat_name || chatName
+  chat.chat_avatar = chat.chat_avatar || chatAvatar
   return await chat.save()
 }
 
@@ -57,36 +56,9 @@ const getChatsByUserService = async (userId: string) => {
   })
   const chatListResponse: IChat[] = await Promise.all(
     chats.map(async (chat) => {
-      if (!chat.chat_name) {
-        if (chat.chat_type === CHAT_TYPES.GROUP) {
-          const chatMembers = await User.find({
-            _id: {
-              $in: chat.members
-            }
-          })
-          chat.chat_name = chatMembers.map((member) => member.firstname).join(', ')
-        } else {
-          const chatMembers = await User.find({
-            _id: {
-              $in: chat.members.filter((member) => member !== userId)
-            }
-          })
-          chat.chat_name = chatMembers[0].firstname + ' ' + chatMembers[0].lastname
-        }
-      }
-      if (!chat.chat_avatar) {
-        if (chat.chat_type === CHAT_TYPES.GROUP) {
-          chat.chat_avatar = 'https://flowbite.com/docs/images/people/50/guy-6.jpg'
-        } else {
-          const chatMembers = await User.find({
-            _id: {
-              $in: chat.members.filter((member) => member !== userId)
-            }
-          })
-          chat.chat_avatar = chatMembers[0].avatar
-        }
-      }
-
+      const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
+      chat.chat_name = chatName
+      chat.chat_avatar = chatAvatar
       return chat
     })
   )
@@ -99,37 +71,12 @@ const getChatByIdService = async (chatId: string, userId: string) => {
   if (!chat) {
     throw new ErrorResponse(StatusCodes.NOT_FOUND, 'Chat not found')
   }
-  const chatResponse = { ...chat.toObject() }
-  if (!chatResponse.chat_name) {
-    if (chatResponse.chat_type === CHAT_TYPES.GROUP) {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chatResponse.members
-        }
-      })
-      chatResponse.chat_name = chatMembers.map((member) => member.firstname).join(', ')
-    } else {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chatResponse.members.filter((member) => member !== userId)
-        }
-      })
-      chatResponse.chat_name = chatMembers[0].firstname + ' ' + chatMembers[0].lastname
-    }
+  if (!chat.members.includes(userId)) {
+    throw new ErrorResponse(StatusCodes.FORBIDDEN, 'You are not a member of this chat')
   }
-  if (!chatResponse.chat_avatar) {
-    if (chatResponse.chat_type === CHAT_TYPES.GROUP) {
-      chatResponse.chat_avatar =
-        'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSx-8KCTnNpTQXlTfDb7z2Ka8hJfREAb2fqww&s'
-    } else {
-      const chatMembers = await User.find({
-        _id: {
-          $in: chatResponse.members.filter((member) => member !== userId)
-        }
-      })
-      chatResponse.chat_avatar = chatMembers[0].avatar
-    }
-  }
-  return chatResponse
+  const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
+  chat.chat_name = chatName
+  chat.chat_avatar = chatAvatar
+  return await chat.save()
 }
 export { createChatService, getChatsByUserService, getChatByIdService }

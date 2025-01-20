@@ -3,25 +3,22 @@ import { HiPlus, HiPhotograph, HiThumbUp } from 'react-icons/hi'
 import { FaRegSmile } from 'react-icons/fa'
 import { IoSend } from 'react-icons/io5'
 import EmojiPicker from 'emoji-picker-react'
-import { useState } from 'react'
+import { useContext, useLayoutEffect, useRef, useState } from 'react'
 import Message from '../../../components/Message/Message'
 import ChatHeader from './ChatHeader/ChatHeader'
-import { IChatGet } from '../../../interfaces/Chat'
 import { IMessageCreate } from '../../../interfaces/Message'
 import { createMessage } from '../../../api/message.api'
+import { HomeContext } from '../../../context/HomeContext/HomeContext'
 
-interface ChatBoxProps {
-  sidebarRef: React.RefObject<HTMLDivElement>
-  showSidebar: boolean
-  setShowSidebar: (show: boolean) => void
-  messages: any[]
-  setMessages: React.Dispatch<React.SetStateAction<any[]>>
-  chatCurrentInfo: IChatGet
-}
-
-const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages, setMessages, chatCurrentInfo }) => {
+const ChatBox = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
+  const messageEndRef = useRef<HTMLDivElement>(null)
+  const context = useContext(HomeContext)
+  if (!context) {
+    throw new Error('HomeContext must be used within a HomeProvider')
+  }
+  const { chatCurrentInfo, messages, setMessages } = context
   const onEmojiClick = (emojiObject: any) => {
     setInputMessage((prevInput) => prevInput + emojiObject.emoji)
   }
@@ -42,20 +39,24 @@ const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages
 
     setInputMessage('')
   }
+  useLayoutEffect(() => {
+    messageEndRef.current?.scrollIntoView({ behavior: 'instant' })
+  }, [messages])
   return (
     <div className='flex-1 flex flex-col w-full md:w-auto'>
       {/* Chat Header */}
-      <ChatHeader chatCurrentInfo={chatCurrentInfo} setShowSidebar={setShowSidebar} showSidebar={showSidebar} />
+      <ChatHeader />
 
       {/* Messages */}
       <div className='flex-1 overflow-y-auto p-4 space-y-4 bg-white'>
         {messages.map((message, index) => (
           <Message key={index} message={message} />
         ))}
+        <div ref={messageEndRef}></div>
       </div>
 
       {/* Message Input */}
-      <div className='h-[75px] p-4 border-t border-gray-200 bg-white relative'>
+      <div className='h-[60px] p-2 border-t border-gray-200 bg-white relative'>
         <div className='flex items-center gap-2'>
           <Button color='light' size='sm' pill className='hidden sm:flex'>
             <HiPlus className='w-4 h-4' />
@@ -72,7 +73,6 @@ const ChatBox: React.FC<ChatBoxProps> = ({ showSidebar, setShowSidebar, messages
               onKeyDown={(e) => {
                 if (e.key === 'Enter') {
                   sendMessage()
-                  setInputMessage('')
                 }
               }}
             />

@@ -1,13 +1,14 @@
 import { Avatar, Button } from 'flowbite-react'
+import { useContext } from 'react'
 import { HiMenu } from 'react-icons/hi'
-import { IChatGet } from '../../../../interfaces/Chat'
+import { HomeContext } from '../../../../context/HomeContext/HomeContext'
 
-interface ChatHeaderProps {
-  showSidebar: boolean
-  setShowSidebar: (show: boolean) => void
-  chatCurrentInfo: IChatGet
-}
-const ChatHeader: React.FC<ChatHeaderProps> = ({ showSidebar, setShowSidebar, chatCurrentInfo }) => {
+const ChatHeader = () => {
+  const context = useContext(HomeContext)
+  if (!context) {
+    throw new Error('HomeContext must be used within a HomeProvider')
+  }
+  const { chatCurrentInfo, showSidebar, setShowSidebar } = context
   return (
     <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-white'>
       <Button color='light' size='sm' className='mr-2 md:hidden' onClick={() => setShowSidebar(!showSidebar)}>
