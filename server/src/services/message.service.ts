@@ -2,7 +2,6 @@ import { StatusCodes } from 'http-status-codes'
 import ErrorResponse from '~/core/error.response'
 import { Chat } from '~/models/chat.model'
 import { IMessage, Message } from '~/models/message.model'
-import { User } from '~/models/user.model'
 import { createMessageValidation } from '~/validations/message.validation'
 
 const createMessageService = async (data: IMessage, userId: string) => {
@@ -68,7 +67,8 @@ const GetMessagesByChatService = async (userId: string, chat_id: string) => {
         updatedAt: 1,
         'sender._id': 1,
         'sender.firstname': 1,
-        'sender.lastname': 1
+        'sender.lastname': 1,
+        'sender.avatar': 1
       }
     }
   ])
