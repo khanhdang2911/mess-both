@@ -10,8 +10,7 @@ interface MessageProps {
 const Message: React.FC<MessageProps> = ({ message }) => {
   const isToday = moment(message.createdAt).isSame(new Date(), 'day')
   const auth: any = useSelector(getAuthSelector)
-  const isUser = auth?.user && auth?.user._id === message?.sender_id
-
+  const isUser = auth?.user._id === message.sender_id
   return (
     <div key={message._id} className={`flex items-start gap-2 ${isUser ? 'justify-end' : 'justify-start'}`}>
       {!isUser && <Avatar img={message.sender?.avatar} rounded />}

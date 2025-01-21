@@ -7,7 +7,8 @@ export default defineConfig({
   plugins: [react()],
   envPrefix: 'VITE_', // Mặc định là VITE_
   server: {
-    port: 3000
+    host: '0.0.0.0', // Expose để truy cập từ các thiết bị khác
+    port: 3000, // Đặt cổng, có thể thay đổi nếu cần
   },
   css: {
     devSourcemap: true

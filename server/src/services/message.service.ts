@@ -21,7 +21,49 @@ const createMessageService = async (data: IMessage, userId: string) => {
   chatInMessage.last_message_at = new Date()
   chatInMessage.last_message_by = userId
   await chatInMessage.save()
-  return newMessage
+  const fullInfoMessage = await Message.aggregate([
+    {
+      $match: {
+        _id: newMessage._id
+      }
+    },
+    {
+      $lookup: {
+        from: 'users',
+        let: { sender_id: { $toObjectId: '$sender_id' } },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$sender_id']
+              }
+            }
+          }
+        ],
+        as: 'sender'
+      }
+    },
+    {
+      $unwind: '$sender'
+    },
+    {
+      $project: {
+        _id: 1,
+        chat_id: 1,
+        status: 1,
+        type: 1,
+        sender_id: 1,
+        content: 1,
+        createdAt: 1,
+        updatedAt: 1,
+        'sender._id': 1,
+        'sender.firstname': 1,
+        'sender.lastname': 1,
+        'sender.avatar': 1
+      }
+    }
+  ])
+  return fullInfoMessage[0]
 }
 
 const GetMessagesByChatService = async (userId: string, chat_id: string) => {
@@ -61,6 +103,8 @@ const GetMessagesByChatService = async (userId: string, chat_id: string) => {
       $project: {
         _id: 1,
         chat_id: 1,
+        status: 1,
+        type: 1,
         sender_id: 1,
         content: 1,
         createdAt: 1,

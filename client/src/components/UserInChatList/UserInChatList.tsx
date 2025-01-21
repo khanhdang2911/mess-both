@@ -1,17 +1,31 @@
 import { Avatar } from 'flowbite-react'
 import { IChatGet } from '../../interfaces/Chat'
 import moment from 'moment'
+import { useContext } from 'react'
+import { HomeContext } from '../../context/HomeContext/HomeContext'
+import { getAuthSelector } from '../../redux/selectors'
+import { useSelector } from 'react-redux'
 
 interface UserInChatListProps {
   chat: IChatGet
   onClick?: () => void
 }
 const UserInChatList: React.FC<UserInChatListProps> = ({ chat, onClick }) => {
+  const context = useContext(HomeContext)
+  const auth: any = useSelector(getAuthSelector)
+  if (!context) {
+    return null
+  }
+  const { usersOnline } = context
+
+  const otherUserId = chat.members.find((member) => member !== auth.user._id)
+  const checkUserIsOnline = usersOnline.some((user) => user.userId === otherUserId)
+
   return (
     <div onClick={onClick} key={chat._id} className='flex items-center gap-3 px-4 py-3 hover:bg-gray-50 cursor-pointer'>
       <div className='relative'>
         <Avatar img={chat.chat_avatar} rounded />
-        {true && (
+        {checkUserIsOnline && (
           <div className='absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white'></div>
         )}
       </div>

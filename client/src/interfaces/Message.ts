@@ -8,6 +8,8 @@ interface IMessageCreate {
 interface IMessageResponse {
   _id: string
   chat_id: string
+  type: string
+  status: string
   content: string
   sender_id: string
   createdAt: string
