@@ -2,26 +2,34 @@ import { Avatar, TextInput } from 'flowbite-react'
 import { HiSearch, HiPlus } from 'react-icons/hi'
 import UserInChatList from '../../../components/UserInChatList/UserInChatList'
 import { useContext, useEffect, useState } from 'react'
-import { IUserGet } from '../../../interfaces/User'
 import { getAllUsers } from '../../../api/user.api'
 import { createChat, getChatsByUser } from '../../../api/chat.api'
-import { IChatCreate, IChatGet } from '../../../interfaces/Chat'
+import { IChatCreate } from '../../../interfaces/Chat'
 import { useSelector } from 'react-redux'
 import { getAuthSelector } from '../../../redux/selectors'
 import Footer from '../../../layouts/Footer/Footer'
 import { HomeContext } from '../../../context/HomeContext/HomeContext'
+import { socketUser } from '../../../socket/socket'
 
 interface ChatListProps {}
 const ChatList: React.FC<ChatListProps> = ({}) => {
-  const [users, setUsers] = useState<IUserGet[]>([])
-  const [chats, setChats] = useState<IChatGet[]>([])
-  const [userIdCreateChat, setUserIdCreateChat] = useState<string | null>(null)
   const auth: any = useSelector(getAuthSelector)
   const homeContext = useContext(HomeContext)
   if (!homeContext) {
     return null
   }
-  const { showSidebar, setChoosenChat, sidebarRef } = homeContext
+  const {
+    showSidebar,
+    setChoosenChat,
+    sidebarRef,
+    setUsers,
+    setChats,
+    setUserIdCreateChat,
+    userIdCreateChat,
+    users,
+    chats,
+    setUsersOnline
+  } = homeContext
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -64,6 +72,16 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       handleCreateChat()
     }
   }, [userIdCreateChat])
+  useEffect(() => {
+    if (socketUser === null) return
+    socketUser.emit('add-user-online', auth.user?._id)
+    socketUser.on('users-online', (usersOnline) => {
+      setUsersOnline(usersOnline)
+    })
+    return () => {
+      socketUser.off('users-online')
+    }
+  }, [socketUser])
   return (
     <div
       ref={sidebarRef}

@@ -3,14 +3,18 @@ import { HiPlus, HiPhotograph, HiThumbUp } from 'react-icons/hi'
 import { FaRegSmile } from 'react-icons/fa'
 import { IoSend } from 'react-icons/io5'
 import EmojiPicker from 'emoji-picker-react'
-import { useContext, useLayoutEffect, useRef, useState } from 'react'
+import { useContext, useEffect, useLayoutEffect, useRef, useState } from 'react'
 import Message from '../../../components/Message/Message'
 import ChatHeader from './ChatHeader/ChatHeader'
 import { IMessageCreate } from '../../../interfaces/Message'
 import { createMessage } from '../../../api/message.api'
 import { HomeContext } from '../../../context/HomeContext/HomeContext'
+import { useSelector } from 'react-redux'
+import { getAuthSelector } from '../../../redux/selectors'
+import { socketChat } from '../../../socket/socket'
 
 const ChatBox = () => {
+  const auth: any = useSelector(getAuthSelector)
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const [inputMessage, setInputMessage] = useState('')
   const messageEndRef = useRef<HTMLDivElement>(null)
@@ -30,8 +34,10 @@ const ChatBox = () => {
     }
     try {
       const response = await createMessage(newMessage)
+      const dataResponse = response.data
       if (response.status === 'success') {
-        setMessages((prev) => [...prev, response.data])
+        setMessages((prev) => [...prev, dataResponse])
+        socketChat.emit('send-message', dataResponse)
       }
     } catch (error) {
       console.log(error)
@@ -42,6 +48,29 @@ const ChatBox = () => {
   useLayoutEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: 'instant' })
   }, [messages])
+  // connect socket
+  useEffect(() => {
+    if (socketChat && chatCurrentInfo) {
+      socketChat.emit('join-room', {
+        chatId: chatCurrentInfo._id,
+        userId: auth.user?._id
+      })
+      socketChat.on('receive-message', (message) => {
+        if (message.chat_id === chatCurrentInfo._id && message.sender_id !== auth.user?._id) {
+          setMessages((prev) => [...prev, message])
+        }
+      })
+    }
+    return () => {
+      if (socketChat && chatCurrentInfo) {
+        socketChat.emit('leave-room', {
+          chatId: chatCurrentInfo._id,
+          userId: auth.user?._id
+        })
+        socketChat.off('receive-message')
+      }
+    }
+  }, [chatCurrentInfo, socketChat])
   return (
     <div className='flex-1 flex flex-col w-full md:w-auto'>
       {/* Chat Header */}
