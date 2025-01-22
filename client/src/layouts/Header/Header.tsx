@@ -25,11 +25,11 @@ export default function Header() {
     socketChat.disconnect()
   }
   return (
-    <header className='bg-white shadow-sm'>
-      <div className='mx-auto flex h-16 max-w-screen-xl items-center justify-between px-4 sm:px-6 lg:px-8'>
+    <header className='bg-white shadow-sm h-[8vh] flex items-center'>
+      <div className='w-full flex h-14 items-center justify-between px-4'>
         <Link className='flex items-center text-blue-500' to='/'>
           <FaFacebookMessenger className='h-8 w-8 mr-2' />
-          <span className='text-xl font-semibold'>Messenger</span>
+          <span className='text-xl font-semibold'>CloudTalk </span>
         </Link>
 
         <div className='flex items-center gap-4'>

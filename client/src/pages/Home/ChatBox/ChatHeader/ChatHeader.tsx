@@ -10,7 +10,7 @@ const ChatHeader = () => {
   }
   const { chatCurrentInfo, showSidebar, setShowSidebar } = context
   return (
-    <div className='flex items-center justify-between p-4 border-b border-gray-200 bg-white'>
+    <div className='flex items-center justify-between px-4 py-2 border-b border-gray-200 bg-white'>
       <Button color='light' size='sm' className='mr-2 md:hidden' onClick={() => setShowSidebar(!showSidebar)}>
         <HiMenu className='w-5 h-5' />
       </Button>

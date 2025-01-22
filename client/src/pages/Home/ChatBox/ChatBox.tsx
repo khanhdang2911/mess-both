@@ -26,7 +26,29 @@ const ChatBox = () => {
   const onEmojiClick = (emojiObject: any) => {
     setInputMessage((prevInput) => prevInput + emojiObject.emoji)
   }
+  const handleSendLike = async () => {
+    //hidden showEmojiPicker
+    setShowEmojiPicker(false)
+    const newMessage: IMessageCreate = {
+      chat_id: chatCurrentInfo._id,
+      content: '👍',
+      type: 'text'
+    }
+    try {
+      const response = await createMessage(newMessage)
+      const dataResponse = response.data
+      if (response.status === 'success') {
+        setMessages((prev) => [...prev, dataResponse])
+        socketChat.emit('send-message', dataResponse)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
   const sendMessage = async () => {
+    //hidden showEmojiPicker
+    setShowEmojiPicker(false)
+    if (!inputMessage.trim()) return
     const newMessage: IMessageCreate = {
       chat_id: chatCurrentInfo._id,
       content: inputMessage,
@@ -85,8 +107,8 @@ const ChatBox = () => {
       </div>
 
       {/* Message Input */}
-      <div className='h-[60px] p-2 border-t border-gray-200 bg-white relative'>
-        <div className='flex items-center gap-2'>
+      <div className='h-[60px] px-1 flex items-center border-t border-gray-200 bg-white relative'>
+        <div className='w-full flex items-center gap-2'>
           <Button color='light' size='sm' pill className='hidden sm:flex'>
             <HiPlus className='w-4 h-4' />
           </Button>
@@ -122,7 +144,7 @@ const ChatBox = () => {
           <Button onClick={sendMessage} color='light' size='sm' pill className='flex'>
             <IoSend className='w-4 h-4' />
           </Button>
-          <Button color='light' size='sm' pill>
+          <Button onClick={handleSendLike} color='light' size='sm' pill>
             <HiThumbUp className='w-4 h-4' />
           </Button>
         </div>

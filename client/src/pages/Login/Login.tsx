@@ -47,7 +47,7 @@ export default function Login() {
   return (
     <div className='flex items-center justify-center min-h-screen bg-gray-100'>
       <Card className='w-full max-w-[90%] sm:max-w-md'>
-        <h2 className='text-2xl font-bold text-center mb-6 text-gray-800'>Welcome Back Messenger</h2>
+        <h2 className='text-2xl font-bold text-center mb-6 text-gray-800'>Welcome Back CloudTalk </h2>
         <form className='flex flex-col gap-4' onSubmit={handleSubmit}>
           <div>
             <Label htmlFor='email' value='Email' className='text-sm font-medium text-gray-700' />

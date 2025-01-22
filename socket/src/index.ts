@@ -17,14 +17,6 @@ io.on('connection', (socket) => {
     if (!checkIsUserOnline) {
       usersOnline.set(userId, socket.id)
     }
-    console.log(
-      Array.from(usersOnline.entries(), (user) => {
-        return {
-          userId: user[0],
-          socketId: user[1]
-        }
-      })
-    )
     io.emit(
       'users-online',
       Array.from(usersOnline.entries(), (user) => {
