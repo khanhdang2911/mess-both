@@ -14,7 +14,7 @@ interface IMessageResponse {
   sender_id: string
   createdAt: string
   updatedAt: string
-  sender: {
+  sender?: {
     _id: string
     firstname: string
     lastname: string

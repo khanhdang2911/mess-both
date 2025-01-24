@@ -1,7 +1,7 @@
 import { Response, Request } from 'express'
 import { StatusCodes } from 'http-status-codes'
 import SuccessResponse from '~/core/success.response'
-import { createMessageService, GetMessagesByChatService } from '~/services/message.service'
+import { changeStatusMessageService, createMessageService, GetMessagesByChatService } from '~/services/message.service'
 const CreateMessage = async (req: Request, res: Response) => {
   const data = req.body
   const userId = req.userId
@@ -14,5 +14,11 @@ const GetMessagesByChat = async (req: Request, res: Response) => {
   const messages = await GetMessagesByChatService(userId, chat_id)
   new SuccessResponse(StatusCodes.OK, 'Messages fetched successfully', messages).send(res)
 }
-
-export { CreateMessage, GetMessagesByChat }
+const changeStatusMessage = async (req: Request, res: Response) => {
+  const userId = req.userId
+  const message_id = req.params.message_id
+  const status = req.body.status
+  const message = await changeStatusMessageService(userId, message_id, status)
+  new SuccessResponse(StatusCodes.OK, 'Message status changed successfully', message).send(res)
+}
+export { CreateMessage, GetMessagesByChat, changeStatusMessage }

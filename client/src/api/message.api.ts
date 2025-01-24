@@ -9,4 +9,8 @@ const getMessagesByChat = async (chat_id: string) => {
   return response.data
 }
 
-export { createMessage, getMessagesByChat }
+const changeStatusMessage = async (message_id: string, status: string) => {
+  const response = await axios.put(`/messages/change-status-message/${message_id}`, { status })
+  return response.data
+}
+export { createMessage, getMessagesByChat, changeStatusMessage }

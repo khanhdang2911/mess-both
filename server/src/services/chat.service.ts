@@ -1,4 +1,5 @@
 import { StatusCodes } from 'http-status-codes'
+import mongoose from 'mongoose'
 import { CHAT_TYPES } from '~/constants/chat.constant'
 import ErrorResponse from '~/core/error.response'
 import { Chat, IChat } from '~/models/chat.model'
@@ -13,8 +14,9 @@ const getChatNameAndChatAvatar = async (chat: IChat, userId: string) => {
         $in: chat.members
       }
     })
-    chatName = chatMembers.map((member) => member.firstname).join(', ')
-    chatAvatar = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSx-8KCTnNpTQXlTfDb7z2Ka8hJfREAb2fqww&s'
+    chatName = chat.chat_name || chatMembers.map((member) => member.firstname).join(', ')
+    chatAvatar =
+      chat.chat_avatar || 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcSx-8KCTnNpTQXlTfDb7z2Ka8hJfREAb2fqww&s'
   } else {
     const ortherMemberId = chat.members.find((member) => member !== userId)
     const ortherMember = await User.findById(ortherMemberId)
@@ -51,9 +53,35 @@ const createChatService = async (data: IChat, userId: string) => {
 }
 
 const getChatsByUserService = async (userId: string) => {
-  const chats = await Chat.find({
-    members: userId
-  })
+  const chats = await Chat.aggregate([
+    {
+      $match: {
+        members: userId
+      }
+    },
+    {
+      $lookup: {
+        from: 'messages',
+        let: { last_message_id: { $toObjectId: '$last_message_id' } },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$last_message_id']
+              }
+            }
+          }
+        ],
+        as: 'last_message_info'
+      }
+    },
+    {
+      $unwind: {
+        path: '$last_message_info',
+        preserveNullAndEmptyArrays: true
+      }
+    }
+  ])
   const chatListResponse: IChat[] = await Promise.all(
     chats.map(async (chat) => {
       const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
@@ -67,16 +95,46 @@ const getChatsByUserService = async (userId: string) => {
 }
 
 const getChatByIdService = async (chatId: string, userId: string) => {
-  const chat = await Chat.findById(chatId)
-  if (!chat) {
+  const chat = await Chat.aggregate([
+    {
+      $match: {
+        _id: new mongoose.Types.ObjectId(chatId)
+      }
+    },
+    {
+      $lookup: {
+        from: 'messages',
+        let: { last_message_id: { $toObjectId: '$last_message_id' } },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $eq: ['$_id', '$$last_message_id']
+              }
+            }
+          }
+        ],
+        as: 'last_message_info'
+      }
+    },
+    {
+      $unwind: {
+        path: '$last_message_info',
+        preserveNullAndEmptyArrays: true
+      }
+    }
+  ])
+  const chatInfo = chat[0]
+  if (!chatInfo) {
     throw new ErrorResponse(StatusCodes.NOT_FOUND, 'Chat not found')
   }
-  if (!chat.members.includes(userId)) {
+  if (!chatInfo.members.includes(userId)) {
     throw new ErrorResponse(StatusCodes.FORBIDDEN, 'You are not a member of this chat')
   }
-  const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
-  chat.chat_name = chatName
-  chat.chat_avatar = chatAvatar
-  return await chat.save()
+  const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chatInfo, userId)
+  chatInfo.chat_name = chatName
+  chatInfo.chat_avatar = chatAvatar
+  return chatInfo
 }
+
 export { createChatService, getChatsByUserService, getChatByIdService }

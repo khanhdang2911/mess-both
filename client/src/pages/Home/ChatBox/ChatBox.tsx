@@ -11,7 +11,8 @@ import { createMessage } from '../../../api/message.api'
 import { HomeContext } from '../../../context/HomeContext/HomeContext'
 import { useSelector } from 'react-redux'
 import { getAuthSelector } from '../../../redux/selectors'
-import { socketChat } from '../../../socket/socket'
+import { socket } from '../../../socket/socket'
+import { IChatGet } from '../../../interfaces/Chat'
 
 const ChatBox = () => {
   const auth: any = useSelector(getAuthSelector)
@@ -22,7 +23,7 @@ const ChatBox = () => {
   if (!context) {
     throw new Error('HomeContext must be used within a HomeProvider')
   }
-  const { chatCurrentInfo, messages, setMessages } = context
+  const { chatCurrentInfo, messages, setMessages, setChats } = context
   const onEmojiClick = (emojiObject: any) => {
     setInputMessage((prevInput) => prevInput + emojiObject.emoji)
   }
@@ -39,7 +40,7 @@ const ChatBox = () => {
       const dataResponse = response.data
       if (response.status === 'success') {
         setMessages((prev) => [...prev, dataResponse])
-        socketChat.emit('send-message', dataResponse)
+        socket.emit('send-message', dataResponse)
       }
     } catch (error) {
       console.log(error)
@@ -59,7 +60,7 @@ const ChatBox = () => {
       const dataResponse = response.data
       if (response.status === 'success') {
         setMessages((prev) => [...prev, dataResponse])
-        socketChat.emit('send-message', dataResponse)
+        socket.emit('send-message', dataResponse)
       }
     } catch (error) {
       console.log(error)
@@ -72,27 +73,36 @@ const ChatBox = () => {
   }, [messages])
   // connect socket
   useEffect(() => {
-    if (socketChat && chatCurrentInfo) {
-      socketChat.emit('join-room', {
+    if (socket && chatCurrentInfo) {
+      socket.emit('join-room', {
         chatId: chatCurrentInfo._id,
         userId: auth.user?._id
       })
-      socketChat.on('receive-message', (message) => {
+      socket.on('receive-message', (message) => {
         if (message.chat_id === chatCurrentInfo._id && message.sender_id !== auth.user?._id) {
           setMessages((prev) => [...prev, message])
         }
       })
+      socket.on('receive-notification', (chatInfo: IChatGet) => {
+        setChats((prev: IChatGet[]) => {
+          const index = prev.findIndex((chat) => chat._id === chatInfo._id)
+          if (index !== -1) {
+            prev[index] = chatInfo
+          }
+          return [...prev]
+        })
+      })
     }
     return () => {
-      if (socketChat && chatCurrentInfo) {
-        socketChat.emit('leave-room', {
+      if (socket && chatCurrentInfo) {
+        socket.emit('leave-room', {
           chatId: chatCurrentInfo._id,
           userId: auth.user?._id
         })
-        socketChat.off('receive-message')
+        socket.off('receive-message')
       }
     }
-  }, [chatCurrentInfo, socketChat])
+  }, [chatCurrentInfo, socket])
   return (
     <div className='flex-1 flex flex-col w-full md:w-auto'>
       {/* Chat Header */}

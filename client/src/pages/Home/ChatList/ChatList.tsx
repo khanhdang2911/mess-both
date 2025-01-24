@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux'
 import { getAuthSelector } from '../../../redux/selectors'
 import Footer from '../../../layouts/Footer/Footer'
 import { HomeContext } from '../../../context/HomeContext/HomeContext'
-import { socketUser } from '../../../socket/socket'
+import { socket } from '../../../socket/socket'
 
 interface ChatListProps {}
 const ChatList: React.FC<ChatListProps> = ({}) => {
@@ -29,7 +29,6 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
     users,
     chats,
     setUsersOnline,
-    messages
   } = homeContext
   useEffect(() => {
     const fetchUsers = async () => {
@@ -54,7 +53,7 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       }
     }
     fetchChats()
-  }, [messages])
+  }, [])
 
   useEffect(() => {
     const handleCreateChat = async () => {
@@ -74,16 +73,15 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
     }
   }, [userIdCreateChat])
   useEffect(() => {
-    if (socketUser === null) return
-    socketUser.emit('add-user-online', auth.user?._id)
-    socketUser.on('users-online', (usersOnline) => {
+    if (socket === null) return
+    socket.emit('add-user-online', auth.user?._id)
+    socket.on('users-online', (usersOnline) => {
       setUsersOnline(usersOnline)
     })
     return () => {
-      socketUser.off('users-online')
+      socket.off('users-online')
     }
-  }, [socketUser])
-
+  }, [socket])
   // Thêm states mới
   const [searchTerm, setSearchTerm] = useState('ss')
   const [showSearchResults, setShowSearchResults] = useState(false)
@@ -98,14 +96,12 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       setShowSearchResults(true)
     } else {
       setShowSearchResults(false)
-      setSearchTerm('')
     }
   }
 
   const handleClickOutside = (e: MouseEvent) => {
     if (!(e.target as HTMLElement)?.closest('.search-container')) {
       setShowSearchResults(false)
-      setSearchTerm('')
     }
   }
 
@@ -131,7 +127,7 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
         </div>
       </div>
       {/* Search Results Dropdown */}
-      {showSearchResults && true && (
+      {showSearchResults && searchTerm && (
         <div className='absolute left-0 right-0 mt-2 mx-4 bg-white rounded-lg shadow-lg border border-gray-200 max-h-[70%] overflow-y-auto z-50'>
           {searchResults.length > 0 ? (
             searchResults.map((user) => (

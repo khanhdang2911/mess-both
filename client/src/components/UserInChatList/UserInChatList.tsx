@@ -20,7 +20,6 @@ const UserInChatList: React.FC<UserInChatListProps> = ({ chat, onClick }) => {
   //Kiem tra xem user kia co online khong bang cach kiem tra xem trong chat do co user nao online khong tru minh ra
   const otherUserId = chat.members.find((member) => member !== auth.user._id)
   const checkUserIsOnline = usersOnline.some((user) => user.userId === otherUserId)
-
   return (
     <div
       onClick={onClick}
@@ -39,12 +38,12 @@ const UserInChatList: React.FC<UserInChatListProps> = ({ chat, onClick }) => {
         <div className='flex justify-between'>
           <p className='text-sm font-medium text-gray-900 truncate'>{chat.chat_name}</p>
           <span className='text-xs text-gray-500'>
-            {chat.last_message_at ? moment(chat.last_message_at).fromNow() : ''}
+            {chat.last_message_info?.createdAt ? moment(chat.last_message_info?.createdAt).fromNow() : ''}
           </span>
         </div>
-        <p className='text-sm text-gray-500 truncate'>
-          {chat.last_message_by === auth.user._id ? 'You: ' : ''}
-          {chat?.last_message}
+        <p className={`text-sm text-gray-500 truncate `}>
+          {chat.last_message_info?.sender_id === auth.user._id ? 'You: ' : ''}
+          {chat.last_message_info?.content}
         </p>
       </div>
     </div>

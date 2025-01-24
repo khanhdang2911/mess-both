@@ -9,9 +9,7 @@ interface IChat {
   chat_name?: string
   chat_type?: string
   chat_avatar?: string
-  last_message?: string
-  last_message_at?: Date
-  last_message_by?: string
+  last_message_id?: string
 }
 
 const ChatSchema = new Schema<IChat>(
@@ -34,17 +32,10 @@ const ChatSchema = new Schema<IChat>(
       type: String,
       required: false
     },
-    last_message: {
+    last_message_id: {
       type: String,
-      required: false
-    },
-    last_message_by: {
-      type: String,
-      required: false
-    },
-    last_message_at: {
-      type: Date,
-      required: false
+      required: false,
+      ref: 'message'
     }
   },
   {

@@ -17,9 +17,7 @@ const createMessageService = async (data: IMessage, userId: string) => {
     throw new ErrorResponse(StatusCodes.NOT_FOUND, 'Chat not found or you are not a member of this chat')
   }
   const newMessage = await Message.create({ ...data, sender_id: userId })
-  chatInMessage.last_message = newMessage.content
-  chatInMessage.last_message_at = new Date()
-  chatInMessage.last_message_by = userId
+  chatInMessage.last_message_id = newMessage._id.toString()
   await chatInMessage.save()
   const fullInfoMessage = await Message.aggregate([
     {
@@ -118,4 +116,15 @@ const GetMessagesByChatService = async (userId: string, chat_id: string) => {
   ])
   return messages
 }
-export { createMessageService, GetMessagesByChatService }
+
+const changeStatusMessageService = async (userId: string, message_id: string, status: string) => {
+  const message = await Message.findOne({
+    _id: message_id
+  })
+  if (!message) {
+    throw new ErrorResponse(StatusCodes.NOT_FOUND, 'Message not found or you are not the sender of this message')
+  }
+  message.status = status
+  return await message.save()
+}
+export { createMessageService, GetMessagesByChatService, changeStatusMessageService }
