@@ -6,7 +6,6 @@ import { getAuthSelector } from '../../redux/selectors'
 import { logout } from '../../api/auth.api'
 import authSlice from '../../redux/authSlice'
 import { useNavigate } from 'react-router-dom'
-import { socketChat, socketUser } from '../../socket/socket'
 export default function Header() {
   const auth: any = useSelector(getAuthSelector)
   const navigate = useNavigate()
@@ -21,8 +20,6 @@ export default function Header() {
       dispatch(authSlice.actions.logout())
       navigate('/login')
     }
-    socketUser.disconnect()
-    socketChat.disconnect()
   }
   return (
     <header className='bg-white shadow-sm h-[8vh] flex items-center'>
