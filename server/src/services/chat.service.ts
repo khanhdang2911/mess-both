@@ -3,6 +3,7 @@ import mongoose from 'mongoose'
 import { CHAT_TYPES } from '~/constants/chat.constant'
 import ErrorResponse from '~/core/error.response'
 import { Chat, IChat } from '~/models/chat.model'
+import { ReadStatus } from '~/models/readStatus.model'
 import { User } from '~/models/user.model'
 import { createChatValidation } from '~/validations/chat.validation'
 const getChatNameAndChatAvatar = async (chat: IChat, userId: string) => {
@@ -87,6 +88,12 @@ const getChatsByUserService = async (userId: string) => {
       const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chat, userId)
       chat.chat_name = chatName
       chat.chat_avatar = chatAvatar
+      const checkLastMessageIsRead = await ReadStatus.findOne({
+        chat_id: chat._id.toString(),
+        user_id: userId,
+        last_message_id: chat.last_message_id
+      })
+      chat.last_message_is_read = !!checkLastMessageIsRead
       return chat
     })
   )
@@ -134,6 +141,12 @@ const getChatByIdService = async (chatId: string, userId: string) => {
   const { chatName, chatAvatar } = await getChatNameAndChatAvatar(chatInfo, userId)
   chatInfo.chat_name = chatName
   chatInfo.chat_avatar = chatAvatar
+  const checkLastMessageIsRead = await ReadStatus.findOne({
+    chat_id: chatInfo._id.toString(),
+    user_id: userId,
+    last_message_id: chatInfo.last_message_id
+  })
+  chatInfo.last_message_is_read = !!checkLastMessageIsRead
   return chatInfo
 }
 

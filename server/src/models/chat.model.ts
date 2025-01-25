@@ -45,5 +45,5 @@ const ChatSchema = new Schema<IChat>(
 )
 
 const Chat = mongoose.model<IChat>(DOCUMENT_NAME, ChatSchema)
-
+ChatSchema.index({ members: 1 })
 export { Chat, IChat }

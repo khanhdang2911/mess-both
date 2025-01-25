@@ -5,4 +5,12 @@ const getALlUsersService = async () => {
   return users
 }
 
-export { getALlUsersService }
+const searchUserService = async (keyword: string, userId: string) => {
+  const users = await User.find({
+    $text: {
+      $search: keyword
+    }
+  }).select('firstname lastname email avatar gender')
+  return users.filter((user) => user._id.toString() !== userId)
+}
+export { getALlUsersService, searchUserService }

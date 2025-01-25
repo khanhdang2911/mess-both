@@ -1,5 +1,5 @@
 import mongoose, { Schema } from 'mongoose'
-import { MESSAGE_STATUS, MESSAGE_TYPES } from '~/constants/message.constant'
+import { MESSAGE_TYPES } from '~/constants/message.constant'
 
 const COLLECTION_NAME = 'messages'
 const DOCUMENT_NAME = 'message'
@@ -9,7 +9,6 @@ interface IMessage {
   type: 'text' | 'image' | 'video' | 'file'
   content: string
   sender_id: string
-  status?: string
   is_deleted?: boolean
   is_edited?: boolean
 }
@@ -35,13 +34,6 @@ const MessageSchema = new Schema<IMessage>(
       type: String,
       required: true,
       ref: 'user'
-
-    },
-    status: {
-      type: String,
-      required: true,
-      enum: Object.values(MESSAGE_STATUS),
-      default: 'sent'
     },
     is_deleted: {
       type: Boolean,

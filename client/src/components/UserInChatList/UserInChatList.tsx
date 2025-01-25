@@ -41,7 +41,9 @@ const UserInChatList: React.FC<UserInChatListProps> = ({ chat, onClick }) => {
             {chat.last_message_info?.createdAt ? moment(chat.last_message_info?.createdAt).fromNow() : ''}
           </span>
         </div>
-        <p className={`text-sm text-gray-500 truncate `}>
+        <p
+          className={`text-sm truncate ${!chat.last_message_is_read ? 'text-black font-semibold' : 'text-gray-500'}  `}
+        >
           {chat.last_message_info?.sender_id === auth.user._id ? 'You: ' : ''}
           {chat.last_message_info?.content}
         </p>
