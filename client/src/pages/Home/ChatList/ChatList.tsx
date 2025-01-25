@@ -2,14 +2,17 @@ import { Avatar, TextInput } from 'flowbite-react'
 import { HiSearch } from 'react-icons/hi'
 import UserInChatList from '../../../components/UserInChatList/UserInChatList'
 import { ChangeEvent, useContext, useEffect, useState } from 'react'
-import { getAllUsers } from '../../../api/user.api'
+import { getAllUsers, searchUser } from '../../../api/user.api'
 import { createChat, getChatsByUser } from '../../../api/chat.api'
-import { IChatCreate } from '../../../interfaces/Chat'
+import { IChatCreate, IChatGet } from '../../../interfaces/Chat'
 import { useSelector } from 'react-redux'
 import { getAuthSelector } from '../../../redux/selectors'
 import Footer from '../../../layouts/Footer/Footer'
 import { HomeContext } from '../../../context/HomeContext/HomeContext'
 import { socket } from '../../../socket/socket'
+import { changeStatusMessage } from '../../../api/message.api'
+import useDebounce from '../../../hooks/useDebounce'
+import { IUserGet } from '../../../interfaces/User'
 
 interface ChatListProps {}
 const ChatList: React.FC<ChatListProps> = ({}) => {
@@ -28,7 +31,7 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
     userIdCreateChat,
     users,
     chats,
-    setUsersOnline,
+    setUsersOnline
   } = homeContext
   useEffect(() => {
     const fetchUsers = async () => {
@@ -82,13 +85,24 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       socket.off('users-online')
     }
   }, [socket])
-  // Thêm states mới
-  const [searchTerm, setSearchTerm] = useState('ss')
+  // Search user area
+  const [searchTerm, setSearchTerm] = useState('')
   const [showSearchResults, setShowSearchResults] = useState(false)
-
-  // Tìm kiếm users từ danh sách có sẵn
-  const searchResults = users.filter((user) => user._id !== auth.user?._id)
-
+  const [searchResults, setSearchResults] = useState<IUserGet[]>([])
+  const debouncedSearchTerm = useDebounce(searchTerm, 500)
+  useEffect(() => {
+    const fetchSearchResults = async () => {
+      try {
+        const response = await searchUser(searchTerm)
+        setSearchResults(response.data)
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    if (searchTerm) {
+      fetchSearchResults()
+    }
+  }, [debouncedSearchTerm])
   const handleSearchFocus = (e: ChangeEvent) => {
     const value = (e.target as HTMLInputElement).value
     setSearchTerm(value)
@@ -104,11 +118,23 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       setShowSearchResults(false)
     }
   }
-
+  const handleChooseChat = async (chat: IChatGet) => {
+    setChoosenChat(chat._id)
+    try {
+      if (chat.last_message_id) {
+        await changeStatusMessage(chat.last_message_id, chat._id)
+        const getChats = await getChatsByUser()
+        setChats(getChats.data)
+      }
+    } catch (error) {
+      console.log(error)
+    }
+  }
   useEffect(() => {
     document.addEventListener('click', handleClickOutside)
     return () => document.removeEventListener('click', handleClickOutside)
   }, [])
+
   return (
     <div
       ref={sidebarRef}
@@ -157,7 +183,7 @@ const ChatList: React.FC<ChatListProps> = ({}) => {
       {/* Chat List */}
       <div className='overflow-y-auto h-[calc(100%-200px)] custom-scroll relative z-10'>
         {chats &&
-          chats.map((chat) => <UserInChatList key={chat._id} chat={chat} onClick={() => setChoosenChat(chat._id)} />)}
+          chats.map((chat) => <UserInChatList key={chat._id} chat={chat} onClick={() => handleChooseChat(chat)} />)}
       </div>
       {/* Footer */}
       <Footer />

@@ -13,6 +13,7 @@ interface IChatGet {
   createdAt?: string
   updatedAt?: string
   last_message_id?: string
+  last_message_is_read?: boolean
   last_message_info?: IMessageResponse
 }
 export type { IChatCreate, IChatGet }

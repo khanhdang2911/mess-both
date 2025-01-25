@@ -17,8 +17,8 @@ const GetMessagesByChat = async (req: Request, res: Response) => {
 const changeStatusMessage = async (req: Request, res: Response) => {
   const userId = req.userId
   const message_id = req.params.message_id
-  const status = req.body.status
-  const message = await changeStatusMessageService(userId, message_id, status)
+  const chat_id = req.params.chat_id
+  const message = await changeStatusMessageService(userId, message_id, chat_id)
   new SuccessResponse(StatusCodes.OK, 'Message status changed successfully', message).send(res)
 }
 export { CreateMessage, GetMessagesByChat, changeStatusMessage }

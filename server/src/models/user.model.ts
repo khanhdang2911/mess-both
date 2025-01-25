@@ -61,5 +61,5 @@ const UserSchema = new Schema<IUser>(
 )
 
 const User = mongoose.model<IUser>(DOCUMENT_NAME, UserSchema)
-
+UserSchema.index({ firstname: 'text', lastname: 'text', email: 'text' })
 export { User, IUser }
